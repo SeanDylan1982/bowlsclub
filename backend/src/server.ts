@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import membersRouter from './routes/members';
+import authRouter from './routes/auth';
 
 dotenv.config();
 
@@ -13,26 +14,24 @@ const PORT = process.env.PORT || 5000;
 app.use(cors({
   origin: 'http://localhost:3000', // Allow frontend origin
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json());
 
-// MongoDB Connection
-const connectToMongoDB = async () => {
-  try {
-    const MONGODB_URI = 'mongodb+srv://sean:LfBPQEip8MyuIcpn@cluster0.lupy7fa.mongodb.net/bowlsclub?retryWrites=true&w=majority';
-    await mongoose.connect(MONGODB_URI);
-    console.log('Connected to MongoDB Atlas');
-  } catch (error) {
-    console.error('MongoDB connection error:', error);
-    process.exit(1);
-  }
-};
-
-connectToMongoDB();
-
 // Routes
+app.use('/api/auth', authRouter);
 app.use('/api/members', membersRouter);
+
+// MongoDB Connection
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://sean:LfBPQEip8MyuIcpn@cluster0.lupy7fa.mongodb.net/bowlsclub?retryWrites=true&w=majority';
+
+mongoose.connect(MONGODB_URI)
+  .then(() => {
+    console.log('Connected to MongoDB Atlas');
+  })
+  .catch((error) => {
+    console.error('MongoDB connection error:', error);
+  });
 
 // Basic route
 app.get('/', (req, res) => {
@@ -47,5 +46,5 @@ app.use((err: Error, req: express.Request, res: express.Response, next: express.
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 }); 
